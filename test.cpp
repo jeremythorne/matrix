@@ -69,14 +69,14 @@ void test_sub() {
 
 void test_LU() {
     Mat A({3, 3},{
-     2, -1,  2,
+     2, -1, -2,
     -4,  6,  3,
-    -4,  2,  8});
+    -4, -2,  8});
 
     Mat Le({3, 3},{
      1,  0,  0,
     -2,  1,  0,
-    -1, -1,  1});
+    -2, -1,  1});
 
     Mat Ue({3, 3},{
      2, -1, -2,
@@ -84,6 +84,7 @@ void test_LU() {
      0,  0,  3});
 
     auto [L, U] = LU_decompose(A);
+
     assert(L == Le);
     assert(U == Ue);
 }
@@ -93,5 +94,6 @@ int main() {
     test_transpose();
     test_add();
     test_sub();
+    test_LU();
     return 0;
 }

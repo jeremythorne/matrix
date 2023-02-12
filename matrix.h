@@ -50,7 +50,8 @@ using Mat = Matrix<double>;
 
 // print A to stdout
 template<typename F>
-void print(Matrix<F> const &A) {
+void print(const char *name, Matrix<F> const &A) {
+    printf("%s\n", name);
     for(size_t i = 0; i < A.shape.M; i++) {
         for(size_t j = 0; j < A.shape.N; j++) {
             printf(" %0.2f", A.at(i, j));
@@ -215,7 +216,7 @@ LU_decompose(Matrix<F> const &A) {
     }
     // first column of L
     for (size_t i = 0; i < A.shape.N; i++) {
-        U.mut_at(i, 0) = A.at(i, 0) / U.at(0, 0);
+        L.mut_at(i, 0) = A.at(i, 0) / U.at(0, 0);
     }
 
     // then iterate
@@ -224,11 +225,11 @@ LU_decompose(Matrix<F> const &A) {
         size_t i, j;
         i = x;
         for (size_t j = x; j < A.shape.M; j++) {
-            U.mut_at(i, j) = A.at(i, j) - dot(L, i, 0, U, j, 0, i - 1);
+            U.mut_at(i, j) = A.at(i, j) - dot(L, i, 0, U, j, 0, i);
         }
         j = x;
         for (size_t i = x; i < A.shape.N; i++) {
-            L.mut_at(i, j) = (A.at(i, j) - dot(L, i, 0, U, j, 0, j - 1)) / U.at(j, j);
+            L.mut_at(i, j) = (A.at(i, j) - dot(L, i, 0, U, j, 0, j)) / U.at(j, j);
         }
     }
     return {L, U};
