@@ -1,6 +1,9 @@
+#ifndef MATRIX_H
+#define MATRIX_H
+
 #include<cassert>
-#include<cstdio>
 #include<vector>
+#include <cstdio>
 
 // quick and dirty matrix library
 // uses asserts rather than error handling
@@ -9,6 +12,10 @@ struct Shape {
     size_t M;
     size_t N;
 };
+
+bool operator==(Shape const& a, Shape const &b) {
+    return a.M == b.M && a.N == b.N;
+}
 
 template<typename F>
 struct Matrix {
@@ -29,9 +36,15 @@ struct Matrix {
         assert(j < shape.N);
         return data[j + i * shape.N];
     }
+
+    Matrix<F> t() const {
+        return transpose(*this);
+    }
 private:
     std::vector<F> data;
 };
+
+using Mat = Matrix<double>;
 
 template<typename F>
 void print(Matrix<F> const &A) {
@@ -58,7 +71,7 @@ F dot(const Matrix<F> &A, size_t row, size_t start_j,
 }
 
 template<typename F>
-Matrix<F> mul(Matrix<F>& A, Matrix<F> &B) {
+Matrix<F> mul(Matrix<F> const &A, Matrix<F> const &B) {
     assert(A.shape.N == B.shape.M);
     Matrix<F> C({A.shape.M, B.shape.N});
     for(size_t i = 0; i < C.shape.M; i++) {
@@ -69,32 +82,39 @@ Matrix<F> mul(Matrix<F>& A, Matrix<F> &B) {
     return C;
 }
 
-using Mat = Matrix<double>;
-
-void test_mul() {
-    Mat A({2, 2}, 
-            {1.0, 0.0,
-             0.0, 1.0});
-    Mat B({2, 2}, 
-            {2.0, 0.0,
-             0.0, 1.0});
-    auto C = mul(A, B);
-    printf("A:\n");
-    print(A);
-    printf("B:\n");
-    print(B);
-    printf("A * B =\n");
-    print(C);
-
-    Mat D({2, 1}, {2.0, 
-                   3.0});
-    printf("D = \n");
-    print(D);
-    printf("B * D = \n");
-    print(mul(B, D));
+template<typename F>
+Matrix<F> operator*(Matrix<F> const& A, Matrix<F> const &B) {
+    return mul(A, B);
 }
 
-int main() {
-    test_mul();
-    return 0;
+template<typename F>
+bool eq(Matrix<F>const &A, Matrix<F> const &B) {
+    assert(A.shape == B.shape);
+
+    for(size_t i = 0; i < A.shape.M; i++) {
+        for(size_t j = 0; j < A.shape.N; j++) {
+            if (A.at(i, j) != B.at(i, j)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
+
+template<typename F>
+bool operator==(Matrix<F> const& A, Matrix<F> const &B) {
+    return eq(A, B);
+}
+
+template<typename F>
+Matrix<F> transpose(Matrix<F> const &A) {
+    Matrix<F> B({A.shape.N, A.shape.M});
+    for(size_t i = 0; i < A.shape.M; i++) {
+        for(size_t j = 0; j < A.shape.N; j++) {
+            B.mut_at(j, i) = A.at(i, j);
+        }
+    }
+    return B;
+}
+
+#endif
