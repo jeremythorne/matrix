@@ -8,6 +8,7 @@
 // quick and dirty matrix library
 // uses asserts rather than error handling
 
+// dimensions of a Matrix
 struct Shape {
     size_t M;
     size_t N;
@@ -17,6 +18,7 @@ bool operator==(Shape const& a, Shape const &b) {
     return a.M == b.M && a.N == b.N;
 }
 
+// a heap allocated matrix
 template<typename F>
 struct Matrix {
     Matrix(Shape s) : shape(s), data(s.M*s.N) {}
@@ -46,6 +48,7 @@ private:
 
 using Mat = Matrix<double>;
 
+// print A to stdout
 template<typename F>
 void print(Matrix<F> const &A) {
     for(size_t i = 0; i < A.shape.M; i++) {
@@ -56,6 +59,7 @@ void print(Matrix<F> const &A) {
     }
 }
 
+// calculate sum of products between sub row of A and sub column of B
 template<typename F>
 F dot(const Matrix<F> &A, size_t row, size_t start_j,
       const Matrix<F> &B, size_t col, size_t start_i, size_t num) {
@@ -70,6 +74,7 @@ F dot(const Matrix<F> &A, size_t row, size_t start_j,
     return sum;
 }
 
+// calculate A * B
 template<typename F>
 Matrix<F> mul(Matrix<F> const &A, Matrix<F> const &B) {
     assert(A.shape.N == B.shape.M);
@@ -87,6 +92,7 @@ Matrix<F> operator*(Matrix<F> const& A, Matrix<F> const &B) {
     return mul(A, B);
 }
 
+// calculate A == B
 template<typename F>
 bool eq(Matrix<F>const &A, Matrix<F> const &B) {
     assert(A.shape == B.shape);
@@ -106,6 +112,7 @@ bool operator==(Matrix<F> const& A, Matrix<F> const &B) {
     return eq(A, B);
 }
 
+// transpose A
 template<typename F>
 Matrix<F> transpose(Matrix<F> const &A) {
     Matrix<F> B({A.shape.N, A.shape.M});
