@@ -87,6 +87,31 @@ void test_LU() {
 
     assert(L == Le);
     assert(U == Ue);
+    assert(is_lower_triangular(L));
+
+    Mat ye({3, 1}, {1.0,
+                   2.0,
+                  -4.0});
+
+    Mat b = L * ye;
+
+    Mat y = solve_Ly_b(L, b);
+    assert(is_vector(y));
+    assert(y == ye);
+
+    Mat xe({3, 1}, {1.0,
+                   2.0,
+                  -4.0});
+
+    Mat y2 = U * xe;
+    Mat x = solve_Ux_y(U, y2);
+    assert(is_vector(x));
+    assert(x == xe);
+
+    auto b2 = A * xe;
+    auto [L2, U2] = LU_decompose(A);
+    auto x2 = solve_Ux_y(U2, solve_Ly_b(L2, b2));
+    assert(x2 == xe);
 }
 
 int main() {

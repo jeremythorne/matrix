@@ -236,4 +236,73 @@ LU_decompose(Matrix<F> const &A) {
 }
 
 
+template<typename F>
+bool is_vector(Matrix<F> const &x) {
+    return x.shape.N == 1;
+}
+
+template<typename F>
+bool is_lower_triangular(Matrix<F> const &L) {
+    if (!is_square(L)) {
+        return false;
+    }
+    for(size_t i = 0; i < L.shape.M; i++) {
+        for(size_t j = i + 1; j < L.shape.N; j++) {
+            if (L.at(i, j) != 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// solve Ly=b where L is lower triangular and y is an unknown vector
+// sum(k=0..i,Lik * yk) = bi
+// so
+// yi = bi - sum(k=0..i-1,Lik * yk) / Lii
+template<typename F>
+Matrix<F> solve_Ly_b(Matrix<F> const &L, Matrix<F> const &b) {
+    assert(is_lower_triangular(L));
+    assert(is_vector(b));
+
+    Matrix<F> y(b.shape);
+    for(size_t i = 0; i < b.shape.M; i++) {
+        y.mut_at(i, 0) = b.at(i, 0) - dot(L, i, 0, y, 0, 0, i) / L.at(i, i);
+    }
+    return y;
+}
+
+template<typename F>
+bool is_upper_triangular(Matrix<F> const &L) {
+    if (!is_square(L)) {
+        return false;
+    }
+    for(size_t i = 0; i < L.shape.M; i++) {
+        for(size_t j = 0; j < i; j++) {
+            if (L.at(i, j) != 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// solve Ux=y where U is upper triangular and x is an unknown vector
+// sum(k=i..M-1,Uik * xk) = yi
+// so
+// xM-1 = yM-1 / U[M-1, M-1]
+// xi = (yi - sum(k=i+1..M-1,Uik * xk)) / Uii
+template<typename F>
+Matrix<F> solve_Ux_y(Matrix<F> const &U, Matrix<F> const &y) {
+    assert(is_upper_triangular(U));
+    assert(is_vector(y));
+
+    Matrix<F> x(y.shape);
+    for(size_t a = 0; a < x.shape.M; a++) {
+        size_t i = x.shape.M - 1 - a;
+        x.mut_at(i, 0) = (y.at(i, 0) - dot(U, i, i + 1, x, 0, i + 1, a)) / U.at(i, i);
+    }
+    return x;
+}
+
 #endif
