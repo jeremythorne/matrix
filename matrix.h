@@ -60,6 +60,7 @@ void print(Matrix<F> const &A) {
 }
 
 // calculate sum of products between sub row of A and sub column of B
+// utility function for common parts of matrix operation
 template<typename F>
 F dot(const Matrix<F> &A, size_t row, size_t start_j,
       const Matrix<F> &B, size_t col, size_t start_i, size_t num) {
@@ -90,6 +91,42 @@ Matrix<F> mul(Matrix<F> const &A, Matrix<F> const &B) {
 template<typename F>
 Matrix<F> operator*(Matrix<F> const& A, Matrix<F> const &B) {
     return mul(A, B);
+}
+
+// calculate A + B
+template<typename F>
+Matrix<F> add(Matrix<F> const &A, Matrix<F> const &B) {
+    assert(A.shape == B.shape);
+    Matrix<F> C(A.shape);
+    for(size_t i = 0; i < C.shape.M; i++) {
+        for(size_t j = 0; j < C.shape.N; j++) {
+            C.mut_at(i, j) = A.at(i, j) + B.at(i, j); 
+        }
+    }
+    return C;
+}
+
+template<typename F>
+Matrix<F> operator+(Matrix<F> const& A, Matrix<F> const &B) {
+    return add(A, B);
+}
+
+// calculate A - B
+template<typename F>
+Matrix<F> sub(Matrix<F> const &A, Matrix<F> const &B) {
+    assert(A.shape == B.shape);
+    Matrix<F> C(A.shape);
+    for(size_t i = 0; i < C.shape.M; i++) {
+        for(size_t j = 0; j < C.shape.N; j++) {
+            C.mut_at(i, j) = A.at(i, j) - B.at(i, j); 
+        }
+    }
+    return C;
+}
+
+template<typename F>
+Matrix<F> operator-(Matrix<F> const& A, Matrix<F> const &B) {
+    return sub(A, B);
 }
 
 // calculate A == B
@@ -123,5 +160,79 @@ Matrix<F> transpose(Matrix<F> const &A) {
     }
     return B;
 }
+
+// identity
+template<typename F>
+Matrix<F> identity(size_t M) {
+    Matrix<F> I({M, M});
+    for(size_t i = 0; i < M; i++) {
+        I.mut_at(i, i) = 1.0;
+    }
+    return I;
+}
+
+template<typename F>
+bool is_square(Matrix<F> const &A) {
+    return A.shape.M == A.shape.N;
+}
+
+template<typename F>
+bool is_identity(Matrix<F> const &A) {
+    if (!is_square(A)) {
+        return false;
+    }
+    for(size_t i = 0; i < A.shape.M; i++) {
+        for(size_t j = 0; j < A.shape.N; j++) {
+            F a = A.at(i, j);
+            if ((i == j && a != 1.0) ||
+                (i != j && a != 0.0)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// LU decomposition
+// using doolittle algorithm as expressed on 
+// https://www.geeksforgeeks.org/doolittle-algorithm-lu-decomposition/
+// but without reference to the example implementations
+// Uij = { i == 0 -> Aij
+//       { i > 0  -> Aij - sum(k=0..i-1, LikUkj)
+//
+// Lij = { j == 0 -> Aij/Ujj
+//       { j > 0  -> (Aij - sum(k=0..j-1, LikUkj))/Ujj
+
+template<typename F>
+std::pair<Matrix<F>, Matrix<F>>
+LU_decompose(Matrix<F> const &A) {
+    assert(is_square(A));
+    Matrix<F> L(A.shape);
+    Matrix<F> U(A.shape);
+    // first row of U
+    for (size_t j = 0; j < A.shape.M; j++) {
+        U.mut_at(0, j) = A.at(0, j);
+    }
+    // first column of L
+    for (size_t i = 0; i < A.shape.N; i++) {
+        U.mut_at(i, 0) = A.at(i, 0) / U.at(0, 0);
+    }
+
+    // then iterate
+    // fill a row of U followed by a column of L
+    for(size_t x = 1; x < A.shape.M; x++) {
+        size_t i, j;
+        i = x;
+        for (size_t j = x; j < A.shape.M; j++) {
+            U.mut_at(i, j) = A.at(i, j) - dot(L, i, 0, U, j, 0, i - 1);
+        }
+        j = x;
+        for (size_t i = x; i < A.shape.N; i++) {
+            L.mut_at(i, j) = (A.at(i, j) - dot(L, i, 0, U, j, 0, j - 1)) / U.at(j, j);
+        }
+    }
+    return {L, U};
+}
+
 
 #endif

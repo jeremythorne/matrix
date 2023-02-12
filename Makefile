@@ -1,2 +1,3 @@
+CXXFLAGS=-std=c++17
 test: test.o matrix.h
-	g++ -o test test.o
+	g++ ${CXXFLAGS} -o test test.o
