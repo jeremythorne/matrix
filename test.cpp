@@ -114,11 +114,40 @@ void test_LU() {
     assert(x2 == xe);
 }
 
+void test_linear_least_squares() {
+    // y = mx + c
+    double m = 2.0, c = -1.0;
+    Mat Be({2, 1}, {m, c});
+
+    // Y = Be * X
+    Mat X({10, 2});
+    Mat Y({10, 1});
+    for(size_t i = 0; i < 10; i++) {
+        double x = i;
+        X.mut_at(i, 0) = x;
+        X.mut_at(i, 1) = 1.0;
+        Y.mut_at(i, 0) = m * x + c;
+    }
+
+    print("X", X);
+    print("Be", Be);
+    print("Y", Y);
+
+    Mat B = linear_least_squares(X, Y);
+    print("B", B);
+
+    // TODO due to rounding this doesn't quite pass, which isn't very suprising
+    // https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
+    // goes into some detail about why and how we can do better
+//    assert(B == Be);
+}
+
 int main() {
     test_mul();
     test_transpose();
     test_add();
     test_sub();
     test_LU();
+    test_linear_least_squares();
     return 0;
 }

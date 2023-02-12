@@ -305,4 +305,23 @@ Matrix<F> solve_Ux_y(Matrix<F> const &U, Matrix<F> const &y) {
     return x;
 }
 
+// linear least squares
+// find model parameters B that minimise ||Y-XB||^2
+// where Y are the observed outputs, and X are the inputs
+// or more properly Xij=fj(xi)
+// the L2norm is minimised where the gradient is zero
+// by differentiating we get
+// -2XtY + 2XtXB = 0
+// so XtXB = XtY
+// which is of the form Ax=b for unknown x
+template<typename F>
+Matrix<F> linear_least_squares(Matrix<F> const &X, Matrix<F> const &Y) {
+    assert(is_vector(Y));
+    assert(X.shape.M == Y.shape.M);
+    auto A = X.t() * X;
+    auto b = X.t() * Y;
+    auto [L, U] = LU_decompose(A);
+    return solve_Ux_y(U, solve_Ly_b(L, b));
+}
+
 #endif
